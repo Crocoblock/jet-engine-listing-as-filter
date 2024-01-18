@@ -1,2 +1,2 @@
-# jet-engine-listing-as-filter
+# JetEngine - listing as filter
 Allow to use JetEngine listing as filter for another listing
