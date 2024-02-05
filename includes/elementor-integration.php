@@ -109,6 +109,7 @@ class Elementor_Integration {
 					constructor( $container ) {
 
 						const $filterListing = $container.find( '.jet-listing-grid' );
+					
 						$filterListing.addClass( 'jet-select' );
 												
 						$filterListing.data( 'filter-id', $container.data( 'filter-id' ) );
@@ -143,23 +144,57 @@ class Elementor_Integration {
 						this.$select.each( ( index, el ) => {
 							el.setAttribute( 'value', el.dataset.postId );
 						} );
-
+						
 						this.processData();
 						this.initEvent();
+						
+						window.JetSmartFilters.events.subscribe( 'ajaxFilters/updated', ( provider, queryId, response ) => {
+							if ( 'jet-engine' === provider && queryId === this.$container.attr( 'id' ) ) {
+								
+								const $filterListing = this.$container.find( '.jet-listing-grid' );
+					
+								$filterListing.addClass( 'jet-select' );
+
+								$filterListing.data( 'filter-id', $container.data( 'filter-id' ) );
+								$filterListing.attr( 'data-filter-id', $container.data( 'filter-id' ) );
+								$filterListing.data( 'smart-filter', $container.data( 'smart-filter' ) );
+								$filterListing.attr( 'data-smart-filter', $container.data( 'smart-filter' ) );
+								$filterListing.data( 'content-provider', $container.data( 'content-provider' ) );
+								$filterListing.attr( 'data-content-provider', $container.data( 'content-provider' ) );
+								$filterListing.data( 'apply-type', $container.data( 'apply-type' ) );
+								$filterListing.attr( 'data-apply-type', $container.data( 'apply-type' ) );
+								$filterListing.data( 'apply-on', $container.data( 'apply-on' ) );
+								$filterListing.attr( 'data-apply-on', $container.data( 'apply-on' ) );
+								$filterListing.data( 'query-id', $container.data( 'query-id' ) );
+								$filterListing.attr( 'data-query-id', $container.data( 'query-id' ) );
+								$filterListing.data( 'query-type', $container.data( 'query-type' ) );
+								$filterListing.attr( 'data-query-type', $container.data( 'query-type' ) );
+								$filterListing.data( 'query-var', $container.data( 'query-var' ) );
+								$filterListing.attr( 'data-query-var', $container.data( 'query-var' ) );
+								
+								this.$filter = $filterListing;
+								
+								this.$select = this.$container.find( '.jet-listing-grid__item' );
+								
+								this.$select.each( ( index, el ) => {
+									el.setAttribute( 'value', el.dataset.postId );
+								} );
+								
+								this.addFilterChangeEvent();
+							}
+						} );
 					}
 
 					addFilterChangeEvent() {
-						
+												
 						this.$select.on( 'click', evt => {
 
 							const $radioItem = jQuery( evt.target ).closest( '.jet-listing-grid__item' );
-
-							console.log( $radioItem );
 							
 							if ( ! this.isMultiple ) {
 								this.$select.filter('[is-checked="1"]').attr( 'is-checked', null );
 							}
-							
+														
 							if ( this.dataValue != $radioItem.attr( 'value' ) ) {
 								$radioItem.attr( 'is-checked', 1 );
 							} else {
@@ -179,7 +214,7 @@ class Elementor_Integration {
 					processData() {
 
 						this.dataValue = this.$selected.attr( 'value' );
-
+						
 						if (!this.dataValue)
 							this.checkAllOption();
 
