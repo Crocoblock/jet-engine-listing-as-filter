@@ -202,7 +202,7 @@ class Elementor_Integration {
 							}
 
 							this.processData();
-							this.wasСhanged();
+							this.wasChanged();
 
 						});
 					}
