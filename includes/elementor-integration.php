@@ -38,6 +38,9 @@ class Elementor_Integration {
 		$apply_type = ! empty( $settings['jelaf_apply_type'] ) ? $settings['jelaf_apply_type'] : 'ajax';
 		$apply_on = ! empty( $settings['jelaf_apply_on'] ) ? $settings['jelaf_apply_on'] : 'value';
 		$query_id = ! empty( $settings['jelaf_query_id'] ) ? $settings['jelaf_query_id'] : '';
+		$reset_if_filtered = ! empty( $settings['jelaf_reset_if_filtered'] ) ? $settings['jelaf_reset_if_filtered'] : false;
+		$reset_if_filtered = filter_var( $reset_if_filtered, FILTER_VALIDATE_BOOLEAN );
+		$reset_type = ! empty( $settings['jelaf_reset_type'] ) ? $settings['jelaf_reset_type'] : 'all';
 
 		if ( 'submit' === $settings['jelaf_apply_on'] 
 			&& in_array( $settings['jelaf_apply_type'], [ 'ajax', 'mixed' ] ) ) {
@@ -60,6 +63,10 @@ class Elementor_Integration {
 		$widget->add_render_attribute( '_wrapper', 'data-query-id', $query_id );
 		$widget->add_render_attribute( '_wrapper', 'data-query-type', $query_type );
 		$widget->add_render_attribute( '_wrapper', 'data-query-var', $query_var );
+
+		if ( $reset_if_filtered ) {
+				$widget->add_render_attribute( '_wrapper', 'data-reset-if-filtered', $reset_type );
+		}
 
 		$widget->add_render_attribute( '_wrapper', 'class', 'jet-smart-filters-custom-listing' );
 
@@ -178,12 +185,42 @@ class Elementor_Integration {
 								} );
 								
 								this.addFilterChangeEvent();
+								
+								if ( $container.data( 'reset-if-filtered' ) ) {
+									switch ( $container.data( 'reset-if-filtered' ) ) {
+										case 'all':
+											this.reset();
+											break;
+										case 'missing':
+											this.addCheckedAttr();
+											this.processData();
+											break;
+									}
+
+									this.wasСhanged ? this.wasСhanged() : this.wasChanged();
+								} else {
+									this.addCheckedAttr();
+								}
 							}
 						} );
 					}
 
 					isChecked( $item ) {
 						return $item.attr( 'is-checked' ) === '1';
+					}
+					
+					addCheckedAttr( value = false ) {
+						if ( ! value ) {
+							value = this.dataValue;	
+						}
+						
+						if ( ! Array.isArray( value ) ) {
+							this.$filter.find( `.jet-listing-grid__item[value="${value}"]` ).attr( 'is-checked', 1 );
+						} else {
+							for ( const id of value ) {
+								this.addCheckedAttr( id );
+							}
+						}
 					}
 
 					addFilterChangeEvent() {
@@ -483,6 +520,36 @@ class Elementor_Integration {
 				'description' => __( 'Set unique query ID if you use multiple widgets of same provider on the page. Same ID you need to set for filtered widget.', 'jet-smart-filters' ),
 				'condition' => array(
 					'jelaf_enabled' => 'yes',
+				),
+			)
+		);
+		
+		$widget->add_control(
+			'jelaf_reset_if_filtered',
+			array(
+				'type'           => \Elementor\Controls_Manager::SWITCHER,
+				'label'          => __( 'Reset if filtered', 'jet-engine' ),
+				'description'    => __( 'Turn on if you need filter value to reset when this listing is filtered', 'jet-smart-filters' ),
+				'separator'      => 'before',
+				'condition'      => array(
+					'jelaf_enabled' => 'yes',
+				),
+			)
+		);
+
+		$widget->add_control(
+			'jelaf_reset_type',
+			array(
+				'type'           => \Elementor\Controls_Manager::SELECT,
+				'label'          => __( 'Reset type', 'jet-engine' ),
+				'options'   => array(
+					'all'     => __( 'All', 'jet-smart-filters' ),
+					'missing' => __( 'Missing', 'jet-smart-filters' ),
+				),
+				'description'    => __( 'Choose whether to reset all selected options, or only those missing after filtering this listing', 'jet-smart-filters' ),
+				'condition'      => array(
+					'jelaf_enabled' => 'yes',
+					'jelaf_reset_if_filtered' => 'yes',
 				),
 			)
 		);
