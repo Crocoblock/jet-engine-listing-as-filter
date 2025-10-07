@@ -147,6 +147,31 @@ class Elementor_Integration {
 						
 						this.processData();
 						this.initEvent();
+
+						$( document ).on(
+							'jet-engine/listing-grid/after-lazy-load',
+							( e, args, response ) => {
+								const $loadedContainer = args.container;
+
+								if ( ! $loadedContainer[0] || ( $loadedContainer[0] !== $container[0] && $loadedContainer[0]?.parentNode !== $container[0] ) ) {
+									return;
+								}
+
+								const $filterListing = $( $loadedContainer.find( '.jet-listing-grid' )[0] );
+
+								this.$select = $filterListing.find( '.jet-listing-grid__item' );
+
+								if ( disableNested ) {
+									this.$select = this.$select.filter( ( i, el ) => ! el.parentNode.closest('.jet-select .jet-listing-grid__item') );
+								}
+
+								this.$select.each( ( index, el ) => {
+									el.setAttribute( 'value', el.dataset.postId );
+								} );
+
+								this.addFilterChangeEvent();
+							}
+						);
 						
 						window.JetSmartFilters.events.subscribe( 'ajaxFilters/updated', ( provider, queryId, response ) => {
 							if ( 'jet-engine' === provider && queryId === this.$container.attr( 'id' ) ) {
