@@ -55,6 +55,15 @@ class Elementor_Integration {
 		$query_type = ! empty( $args['query_type'] ) ? $args['query_type'] : false;
 		$query_var  = ! empty( $args['query_var'] ) ? $args['query_var'] : '';
 
+		// JSF 3.8.6+ rejects AJAX requests with query keys not registered by a rendered filter.
+		if ( isset( jet_smart_filters()->filter_request_validator ) ) {
+			jet_smart_filters()->filter_request_validator->register_query_key(
+				$provider,
+				$query_id,
+				sprintf( '_%s_%s', $query_type, $query_var )
+			);
+		}
+
 		$widget->add_render_attribute( '_wrapper', 'data-filter-id', $filter_id );
 		$widget->add_render_attribute( '_wrapper', 'data-smart-filter', $filter_type );
 		$widget->add_render_attribute( '_wrapper', 'data-content-provider', $provider );
